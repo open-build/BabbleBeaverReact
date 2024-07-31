@@ -1,9 +1,3 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   font-family: Arial, sans-serif;
 }
@@ -76,6 +70,14 @@ h1 {
   flex-direction: column;
   gap: 10px;
   margin: 20px;
+}
+
+.btn {
+  cursor: pointer;
+}
+
+.btn:disabled {
+  cursor: not-allowed !important;
 }
 
 .suggested-prompt-btn {

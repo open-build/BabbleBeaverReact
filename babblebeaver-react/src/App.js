@@ -6,6 +6,7 @@ export default function App() {
   const [suggestedPrompts, setSuggestedPrompts] = useState([])
   const [isDisabled, setIsDisabled] = useState(false) // for the input field and the button
   const [query, setQuery] = useState("")
+  const [triggerSubmission, setTriggerSubmission] = useState(false)
 
   useEffect(() => {
     // get rid of conversation history and tokens used on page refresh
@@ -19,10 +20,16 @@ export default function App() {
       .then((data) => setSuggestedPrompts(data))
   }, [])
 
+  useEffect(() => {
+    if (triggerSubmission) {
+      document.getElementById("submit-input").click();
+      setTriggerSubmission(false);
+    }
+  }, [triggerSubmission])
+
   const submitForm = async (e) => {
     e.preventDefault()
 
-    if (query.trim() === '') return;
     setSuggestedPrompts([]);
 
     const chatMessages = document.getElementById("chat-messages")
@@ -43,7 +50,6 @@ export default function App() {
     loader.className = "loader"
     chatMessages.append(loader)
 
-    setQuery("")
     setIsDisabled(true)
 
     let sessionMessageHistory = sessionStorage.getItem("messageHistory");
@@ -67,6 +73,7 @@ export default function App() {
     })
       .then((response) => response.json())
       .then((data) => {
+        setQuery("");
         const {response: botMessage, usedTokens, updatedHistory} = data;
         
         // update client side with number of used tokens(included tokens used for the last user query and bot response)
@@ -105,12 +112,14 @@ export default function App() {
   }
 
   return (
-    <>
-      <div className="container">
+    <div className="container">
         <div className="chat-container">
             <h1 className="text-center">BabbleBeaver React</h1>
             
-            <div id = "suggested-prompts" onClick = {(e) => setQuery(e.target.textContent)}>
+            <div id = "suggested-prompts" onClick = {(e) => {
+              setQuery(e.target.textContent);
+              setTriggerSubmission(true);
+            }}>
               {suggestedPrompts.map((suggestedPrompt, index) => {
                 return (
                   <button className = "suggested-prompt-btn" key = {index}>{suggestedPrompt}</button>
@@ -119,14 +128,20 @@ export default function App() {
             </div>
             <div id="chat-messages"></div>
             
-            <form id="chat-form" className="mt-4" onSubmit = {(e) => submitForm(e)}>
+            <form id="chat-form" className="mt-4" onSubmit={(e) => submitForm(e)}>
                 <div className="form-group">
                     <input type="text" id="user-input" className="form-control" value = {query} placeholder="Type your message..." onChange = {(e) => setQuery(e.target.value)} disabled = {isDisabled}/>
                 </div>
-                <button id="submit-input" type="submit" className="btn btn-primary btn-block" disabled = {isDisabled}>Send</button>
+                <button 
+                  id="submit-input" 
+                  type="submit" 
+                  className="btn btn-primary btn-block" 
+                  disabled = {query.trim() === "" || isDisabled}
+                >
+                Send
+                </button>
             </form>
         </div>
     </div>
-    </>
   )
 } 
